@@ -80,4 +80,11 @@ public class UserService {
         // 2. 返回锁定状态
         return manager.isLocked();
     }
+
+    public boolean verifyAdmin(String username, String password) {
+        Manager admin = managerDao.getManagerByUsername(username);
+        if (admin == null) return false;
+        return admin.getPassword().equals(password);
+    }
+
 }

@@ -111,6 +111,12 @@ public class MenuView {
     private void handleRegister() {
         String adminUser = InputUtil.getString("请输入超管用户名: ");
         String adminPwd = InputUtil.getPassword("请输入超管密码: ");
+        // 先验证超级管理员是否正确
+        if (!userService.verifyAdmin(adminUser, adminPwd)) {
+            System.out.println("超管身份验证失败，无注册权限!");
+            return;
+        }
+        // 验证通过再输入新账户信息
         String newUser = InputUtil.getString("请输入新用户名: ");
         String newPwd = InputUtil.getPassword("请输入新密码: ");
         userService.register(adminUser, adminPwd, newUser, newPwd);
@@ -120,8 +126,32 @@ public class MenuView {
     private void handleUnlock() {
         String adminUser = InputUtil.getString("请输入超管用户名: ");
         String adminPwd = InputUtil.getPassword("请输入超管密码: ");
-        String username = InputUtil.getString("请输入需要解锁的用户名: ");
-        userService.unlockAccount(adminUser, adminPwd, username);
+        // 1. 先只验证超管身份，避免进入循环后再验证
+        if (!userService.verifyAdmin(adminUser, adminPwd)) {
+            System.out.println("超管身份验证失败，无法进行解锁操作!");
+            return; // 身份不对，直接结束
+        }
+
+        System.out.println(">> 超管身份验证通过，已进入批量解锁模式 <<");
+
+        // 2. 验证通过后，进入循环
+        while (true) {
+            System.out.println("--------------------------------");
+            // 提示用户怎么退出
+            String username = InputUtil.getString("请输入需要解锁的用户名 (输入 exit 退出): ");
+
+            // 3. 设置退出条件
+            if ("exit".equalsIgnoreCase(username)) {
+                System.out.println("退出解锁模式。");
+                break;
+            }
+
+            // 4. 执行解锁
+            // 注意：虽然 unlockAccount 内部会再次校验超管密码，但因为我们前面验证过了且没改变量，所以肯定通过
+            boolean success = userService.unlockAccount(adminUser, adminPwd, username);
+
+            // 无论成功还是失败，循环都不会结束，用户可以立即输入下一个，或者重输刚才输错的
+        }
     }
 
     // 查询所有学生
