@@ -14,10 +14,6 @@ public class UserService {
             System.out.println("用户名不存在!");
             return false;
         }
-        if (manager.isLocked()) {
-            System.out.println("账号已锁定，请联系管理员!");
-            return false;
-        }
         if (manager.getPassword().equals(password)) {
             System.out.println("登录成功!");
             return true;
@@ -72,5 +68,16 @@ public class UserService {
             System.out.println("解锁失败，用户名不存在!");
             return false;
         }
+    }
+
+    // 在输入密码前判断账号状态
+    public boolean isUserLocked(String username) {
+        // 1. 先查有没有这个人
+        Manager manager = managerDao.getManagerByUsername(username);
+        if (manager == null) {
+            return false; // 用户不存在，肯定没被锁，放行去走后面的登录逻辑（由登录逻辑报用户不存在）
+        }
+        // 2. 返回锁定状态
+        return manager.isLocked();
     }
 }

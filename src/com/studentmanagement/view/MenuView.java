@@ -86,6 +86,13 @@ public class MenuView {
     // 处理登录
     private void handleLogin() {
         String username = InputUtil.getString("请输入用户名: ");
+        // --- 新增代码 START ---
+        // 1. 在输入密码前，先检查是否锁定
+        if (userService.isUserLocked(username)) {
+            System.out.println("账号已锁定，请联系管理员!");
+            return; // 直接结束方法，不再执行下面的 while 循环
+        }
+        // --- 新增代码 END ---
         int failCount = 0;
         while (failCount < 3) {
             String password = InputUtil.getPassword("请输入密码: ");
@@ -94,10 +101,10 @@ public class MenuView {
                 return;
             }
             failCount++;
-            if (failCount == 3) {
-                userService.handleLoginFailure(username);
-            }
+            System.out.println("密码错误，剩余重试次数: " + (3 - failCount));
         }
+        // 当循环结束（即 failCount == 3）时，锁定账号
+        userService.handleLoginFailure(username);
     }
 
     // 处理注册
